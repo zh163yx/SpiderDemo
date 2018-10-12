@@ -7,9 +7,13 @@
 # @Software: PyCharm
 import requests
 import csv
+from matplotlib import pyplot as plt
+import numpy
 import os
 from datetime import datetime,timedelta
 import json
+import pyecharts
+from wordcloud import WordCloud
 
 
 def myspider():
@@ -85,7 +89,7 @@ def readData():
         rows = csv.reader(f)
         time =[]
         cityName = []
-        content = []
+        content = ''
         score = []
         name = []
         gender = []
@@ -94,7 +98,7 @@ def readData():
             if i != 0:
                 time.append(row[0])
                 cityName.append(row[1])
-                content.append(row[2])
+                content += row[2]
                 score.append(row[3])
                 name.append(row[4])
                 gender.append(row[5])
@@ -102,36 +106,61 @@ def readData():
         print("一共有{0}条记录".format(i))
 
         # sex_distribution(gender)
-        city_distribution(cityName)
+        # city_distribution(cityName)
+        mywordCloud(content)
 
+def mywordCloud(text1):
+    text1 = text1.replace("悲伤逆流成河", '')
+    import jieba
+    textcut = jieba.cut(text1)
+    string = ' '.join(textcut)
+    bg = plt.imread(r'img.png')
+    print(bg)
+    wc = WordCloud(
+        font_path=r'C:\Windows\Fonts\Deng.ttf',
+        background_color='white',
+        random_state=50,
+        width=800,
+        height=600,
+        mask=bg,
+    ).generate_from_text(string)
+    plt.imshow(wc)
+    plt.show()
 
 def city_distribution(cityData):
+    '''
+    城市图柱状图
+    :param cityData:
+    :return:
+    '''
     city_Dic ={ }
     for i in cityData:
         if i in city_Dic.keys():
             city_Dic[i] += 1
         else:
             city_Dic[i] = 1
-    sorted_Dic = sorted(city_Dic.items(), key=lambda d: d[1], reverse = True)#排序后变成元组
+    sorted_Dic = sorted(city_Dic.items(), key=lambda d: d[1], reverse=True)#排序后变成元组
     city_name =[]
     city_num = []
     for i in range(len(sorted_Dic)):
         city_name.append(sorted_Dic[i][0])
         city_num.append(sorted_Dic[i][1])
-
+    bar = pyecharts.Bar("城市", title_text_size=20)
+    bar.add('城市统计', city_name, city_num, is_label_show=True, is_datazoom_show=True)
+    bar.render()
 
 def sex_distribution(sexData):
     '''
     性别饼图
     :return: null
     '''
-    from pyecharts import Pie
-    number =[]
+
+    number = []
     number.append(sexData.count('0'))
     number.append(sexData.count('1'))
     number.append(sexData.count('2'))
-    attr=['未知', '男', '女']
-    pie = Pie("性别图")
+    attr = ['未知', '男', '女']
+    pie = pyecharts.Pie("性别图")
     pie.add("", attr, number,is_label_show=True)
     return pie
 if __name__ == "__main__":
