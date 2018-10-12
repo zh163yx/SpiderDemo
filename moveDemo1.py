@@ -8,7 +8,6 @@
 import requests
 import csv
 from matplotlib import pyplot as plt
-import numpy
 import os
 from datetime import datetime,timedelta
 import json
